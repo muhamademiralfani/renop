@@ -1,18 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import Plot from "react-plotly.js";
 import { Calendar, TrendingUp, Download, Filter } from "lucide-react";
 
-export default function RenopTemplate() {
-  const [activities, setActivities] = useState([
+// Data awal sebagai fallback jika localStorage kosong
+const initialActivities = [
     {
       id: 1,
       name: "Penyusunan Rencana Program Bagian EMIS dan PDDikti",
       weight: 6,
       target: "1 dokumen Renop disahkan",
       schedule: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 100,
       pelaksana: "Kepala Bagian EMIS & Staf",
       indicator: "Dokumen Renop disahkan pimpinan maksimal 31 Januari 2025",
       category: "Perencanaan",
+      notes: "Draft awal sudah selesai",
+      followUp: "Review bersama pimpinan",
     },
     {
       id: 14,
@@ -20,11 +23,12 @@ export default function RenopTemplate() {
       weight: 5,
       target: "SK Satgas diterbitkan + job desc lengkap",
       schedule: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 80,
       pelaksana: "Pimpinan PT & Kepala Bagian",
-      indicator:
-        "SK Satgas terbit dengan penugasan jelas untuk data pendidikan, penelitian, dan pengabdian",
+      indicator: "SK Satgas terbit dengan penugasan jelas untuk data pendidikan, penelitian, dan pengabdian",
       category: "Perencanaan",
+      notes: "",
+      followUp: "",
     },
     {
       id: 15,
@@ -32,11 +36,12 @@ export default function RenopTemplate() {
       weight: 7,
       target: "2 kali pelatihan (100% operator hadir)",
       schedule: [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 50,
       pelaksana: "Kepala Bagian & Operator",
-      indicator:
-        "Operator lulus pelatihan dengan nilai ≥80, memahami etika digital & integritas data",
+      indicator: "Operator lulus pelatihan dengan nilai ≥80, memahami etika digital & integritas data",
       category: "Pengembangan SDM",
+      notes: "Pelatihan pertama selesai",
+      followUp: "Jadwalkan pelatihan kedua",
     },
     {
       id: 2,
@@ -44,10 +49,12 @@ export default function RenopTemplate() {
       weight: 8,
       target: "2 kali sosialisasi (100% unit hadir)",
       schedule: [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 75,
       pelaksana: "Kepala Bagian & TU Unit",
       indicator: "Minimal 90% peserta hadir dan memahami prosedur (nilai post-test ≥75)",
       category: "Koordinasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 16,
@@ -55,11 +62,12 @@ export default function RenopTemplate() {
       weight: 6,
       target: "1 roadmap transformasi digital + 2 workshop",
       schedule: [0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 20,
       pelaksana: "Tim ICT & Kepala Bagian",
-      indicator:
-        "Roadmap disahkan, 2 workshop terlaksana untuk pimpinan & staff tentang budaya digital",
+      indicator: "Roadmap disahkan, 2 workshop terlaksana untuk pimpinan & staff tentang budaya digital",
       category: "Pengembangan SDM",
+      notes: "",
+      followUp: "",
     },
     {
       id: 3,
@@ -67,10 +75,12 @@ export default function RenopTemplate() {
       weight: 10,
       target: "16 kali koordinasi (4x/triwulan)",
       schedule: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      achievement: 0,
+      achievement: 90,
       pelaksana: "Kepala Bagian & TU Unit",
       indicator: "16 kali rapat koordinasi terlaksana dengan minimal 80% unit hadir",
       category: "Koordinasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 17,
@@ -78,12 +88,13 @@ export default function RenopTemplate() {
       weight: 8,
       target: "Sistem terintegrasi mengurangi duplikasi 80%",
       schedule: [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 40,
       pelaksana: "Tim ICT & Operator",
-      indicator:
-        "SIAKAD terintegrasi dengan PDDikti/EMIS, duplikasi data berkurang minimal 80%",
+      indicator: "SIAKAD terintegrasi dengan PDDikti/EMIS, duplikasi data berkurang minimal 80%",
       category: "Pengembangan Sistem",
       refs: ["BAN-PT IAPS 5.0 Butir 26"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 4,
@@ -93,9 +104,10 @@ export default function RenopTemplate() {
       schedule: [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
       achievement: 0,
       pelaksana: "Kepala Bagian & Staf",
-      indicator:
-        "5 SOP disahkan: (1) Pengumpulan data, (2) Verifikasi data, (3) Sinkronisasi, (4) Mutasi mahasiswa, (5) Registrasi dosen",
+      indicator: "5 SOP disahkan: (1) Pengumpulan data, (2) Verifikasi data, (3) Sinkronisasi, (4) Mutasi mahasiswa, (5) Registrasi dosen",
       category: "Perencanaan",
+      notes: "",
+      followUp: "",
     },
     {
       id: 18,
@@ -105,9 +117,10 @@ export default function RenopTemplate() {
       schedule: [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       achievement: 0,
       pelaksana: "Kepala Bagian & Tim Hukum",
-      indicator:
-        "3 regulasi: (1) Kewajiban dosen input nilai, (2) Deadline pengumpulan data unit, (3) Sanksi keterlambatan",
+      indicator: "3 regulasi: (1) Kewajiban dosen input nilai, (2) Deadline pengumpulan data unit, (3) Sanksi keterlambatan",
       category: "Perencanaan",
+      notes: "",
+      followUp: "",
     },
     {
       id: 5,
@@ -115,12 +128,13 @@ export default function RenopTemplate() {
       weight: 15,
       target: "6 prodi 100% data KRS terkirim",
       schedule: [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-      achievement: 0,
+      achievement: 10,
       pelaksana: "Kepala Bagian & TU Unit",
-      indicator:
-        "100% data KRS 6 prodi tersinkronisasi ke PDDikti sebelum deadline",
+      indicator: "100% data KRS 6 prodi tersinkronisasi ke PDDikti sebelum deadline",
       category: "Pelaporan Utama",
       refs: ["BAN-PT IAPS 5.0 Butir 15"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 6,
@@ -133,6 +147,8 @@ export default function RenopTemplate() {
       indicator: "100% data KHS & AKM 6 prodi tersinkronisasi sebelum deadline",
       category: "Pelaporan Utama",
       refs: ["BAN-PT IAPS 5.0 Butir 12", "BAN-PT IAPS 5.0 Butir 15"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 7,
@@ -144,6 +160,8 @@ export default function RenopTemplate() {
       pelaksana: "Kepala Bagian & TU Unit",
       indicator: "BAP EMIS 2 periode disahkan tepat waktu sesuai deadline Kemenag",
       category: "Pelaporan Utama",
+      notes: "",
+      followUp: "",
     },
     {
       id: 19,
@@ -153,10 +171,11 @@ export default function RenopTemplate() {
       schedule: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       achievement: 0,
       pelaksana: "Operator SISTER & SDM",
-      indicator:
-        "100% dosen aktif terregistrasi, dokumen lengkap (SK, surat sehat, foto, SPTJM), update rutin",
+      indicator: "100% dosen aktif terregistrasi, dokumen lengkap (SK, surat sehat, foto, SPTJM), update rutin",
       category: "Pelaporan Utama",
       refs: ["BAN-PT IAPS 5.0 Butir 6"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 8,
@@ -169,6 +188,8 @@ export default function RenopTemplate() {
       indicator: "4 laporan evaluasi triwulan + 1 laporan tahunan tersusun",
       category: "Monitoring & Evaluasi",
       refs: ["BAN-PT IAPS 5.0 Butir 3"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 20,
@@ -180,6 +201,8 @@ export default function RenopTemplate() {
       pelaksana: "Seluruh Tim + Pimpinan",
       indicator: "Dokumen monev lengkap, pimpinan hadir, hasil AMI terdokumentasi",
       category: "Monitoring & Evaluasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 9,
@@ -191,6 +214,8 @@ export default function RenopTemplate() {
       pelaksana: "Kepala Bagian & Staf",
       indicator: "Error rate data ≤5% setiap checkpoint",
       category: "Monitoring & Evaluasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 10,
@@ -202,6 +227,8 @@ export default function RenopTemplate() {
       pelaksana: "Kepala Bagian & Staf",
       indicator: "2 inovasi/perbaikan sistem terimplementasi",
       category: "Pengembangan",
+      notes: "",
+      followUp: "",
     },
     {
       id: 11,
@@ -213,6 +240,8 @@ export default function RenopTemplate() {
       pelaksana: "Kepala Bagian",
       indicator: "Minimal 4 kali konsultasi terdokumentasi dengan rekomendasi",
       category: "Koordinasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 21,
@@ -222,9 +251,10 @@ export default function RenopTemplate() {
       schedule: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
       achievement: 0,
       pelaksana: "Pimpinan & Kepala Bagian",
-      indicator:
-        "Pimpinan hadir Rakor, membawa laporan capaian EMIS & PDDikti 2025",
+      indicator: "Pimpinan hadir Rakor, membawa laporan capaian EMIS & PDDikti 2025",
       category: "Koordinasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 12,
@@ -234,9 +264,10 @@ export default function RenopTemplate() {
       schedule: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       achievement: 0,
       pelaksana: "Staf Administrasi",
-      indicator:
-        "100% dokumen fisik & digital tersimpan rapi, akses ≤5 menit",
+      indicator: "100% dokumen fisik & digital tersimpan rapi, akses ≤5 menit",
       category: "Administrasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 13,
@@ -248,6 +279,8 @@ export default function RenopTemplate() {
       pelaksana: "Kepala Bagian & Staf",
       indicator: "13 laporan tepat waktu (maksimal H+7 setiap bulan)",
       category: "Administrasi",
+      notes: "",
+      followUp: "",
     },
     // SAPTO items
     {
@@ -258,9 +291,10 @@ export default function RenopTemplate() {
       schedule: [0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0],
       achievement: 0,
       pelaksana: "Operator EMIS & Koordinator Unit",
-      indicator:
-        "15 tabel SAPTO dari PDDikti terkoordinasi: Rasio Dosen-Mhs, Jabatan Akademik, Kelulusan Tepat Waktu, Trend Lulusan & Mahasiswa Baru",
+      indicator: "15 tabel SAPTO dari PDDikti terkoordinasi: Rasio Dosen-Mhs, Jabatan Akademik, Kelulusan Tepat Waktu, Trend Lulusan & Mahasiswa Baru",
       category: "Pelaporan Utama",
+      notes: "",
+      followUp: "",
     },
     {
       id: 23,
@@ -270,9 +304,10 @@ export default function RenopTemplate() {
       schedule: [0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0],
       achievement: 0,
       pelaksana: "Kepala Bagian & Tim Verifikasi",
-      indicator:
-        "Cross-check data PDDikti dengan LPMI untuk 15 tabel SAPTO, error rate ≤3%",
+      indicator: "Cross-check data PDDikti dengan LPMI untuk 15 tabel SAPTO, error rate ≤3%",
       category: "Monitoring & Evaluasi",
+      notes: "",
+      followUp: "",
     },
     {
       id: 24,
@@ -282,9 +317,10 @@ export default function RenopTemplate() {
       schedule: [0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0],
       achievement: 0,
       pelaksana: "Operator PDDikti & TU Prodi",
-      indicator:
-        "Asistensi teknis ke 6 Kaprodi untuk tabel: Rasio Dosen-Mhs, Kecukupan Dosen, Trend Lulusan, Kelulusan Tepat Waktu",
+      indicator: "Asistensi teknis ke 6 Kaprodi untuk tabel: Rasio Dosen-Mhs, Kecukupan Dosen, Trend Lulusan, Kelulusan Tepat Waktu",
       category: "Koordinasi",
+      notes: "",
+      followUp: "",
     },
     // BAN-PT new items
     {
@@ -295,10 +331,11 @@ export default function RenopTemplate() {
       schedule: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
       achievement: 0,
       pelaksana: "Staf EMIS & PDDikti",
-      indicator:
-        "Pelaporan implementasi & luaran SPMI triwulan ke PDDIKTI tervalidasi (evidence lengkap)",
+      indicator: "Pelaporan implementasi & luaran SPMI triwulan ke PDDIKTI tervalidasi (evidence lengkap)",
       category: "Monitoring & Evaluasi",
       refs: ["BAN-PT IAPS 5.0 Butir 3"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 26,
@@ -311,6 +348,8 @@ export default function RenopTemplate() {
       indicator: "Publikasi artikel dosen tercatat di PDDIKTI sesuai bukti (DOI/ISSN)",
       category: "Pelaporan Utama",
       refs: ["BAN-PT IAPS 5.0 Butir 18"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 27,
@@ -323,6 +362,8 @@ export default function RenopTemplate() {
       indicator: "Data kolaborasi, sitasi, rekognisi dosen terekam di PDDIKTI",
       category: "Pelaporan Utama",
       refs: ["BAN-PT IAPS 5.0 Butir 19"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 28,
@@ -335,6 +376,8 @@ export default function RenopTemplate() {
       indicator: "Rekognisi kepakaran, HKI, dan penerapan karya dosen terlapor di PDDIKTI",
       category: "Pelaporan Utama",
       refs: ["BAN-PT IAPS 5.0 Butir 23"],
+      notes: "",
+      followUp: "",
     },
     {
       id: 29,
@@ -344,12 +387,27 @@ export default function RenopTemplate() {
       schedule: [0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
       achievement: 0,
       pelaksana: "Staf EMIS & PDDikti",
-      indicator:
-        "Dashboard menampilkan tren Maba (PDDIKTI) & keterserapan lulusan (Tracer) untuk semua prodi",
+      indicator: "Dashboard menampilkan tren Maba (PDDIKTI) & keterserapan lulusan (Tracer) untuk semua prodi",
       category: "Pengembangan Sistem",
       refs: ["BAN-PT IAPS 5.0 Butir 15"],
+      notes: "",
+      followUp: "",
     },
-  ]);
+];
+
+
+export default function RenopTemplate() {
+  const [activities, setActivities] = useState(() => {
+    // 1. Muat data dari localStorage saat komponen pertama kali dimuat
+    const savedActivities = localStorage.getItem("renopActivities");
+    return savedActivities ? JSON.parse(savedActivities) : initialActivities;
+  });
+
+  // 2. Simpan data ke localStorage setiap kali ada perubahan pada 'activities'
+  useEffect(() => {
+    localStorage.setItem("renopActivities", JSON.stringify(activities));
+  }, [activities]);
+
 
   const [search, setSearch] = useState("");
   // Data bulan tetap Jan→Des; tampilan diputar Okt→Sep
@@ -361,8 +419,6 @@ export default function RenopTemplate() {
   const [categoryFilter, setCategoryFilter] = useState("Semua");
   const [useNormalizedWeights, setUseNormalizedWeights] = useState(false);
   const [scopeOnlyEMISPDDIKTI, setScopeOnlyEMISPDDIKTI] = useState(true);
-
-  
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -390,7 +446,7 @@ export default function RenopTemplate() {
 
   const totals = useMemo(() => {
     const totalWeightRaw = activities.reduce((s, a) => s + a.weight, 0);
-        const simpleAvgAchievement = activities.reduce((s, a) => s + a.achievement, 0) / activities.length || 0;
+    const simpleAvgAchievement = activities.reduce((s, a) => s + a.achievement, 0) / activities.length || 0;
 
     const normFactor = totalWeightRaw === 0 ? 0 : 100 / totalWeightRaw;
     const getW = (w) => (useNormalizedWeights ? w * normFactor : w);
@@ -402,7 +458,6 @@ export default function RenopTemplate() {
 
     return {
       totalWeightRaw,
-      
       simpleAvgAchievement,
       weightedScore,
       weightedAvgAchievement,
@@ -410,9 +465,42 @@ export default function RenopTemplate() {
     };
   }, [activities, useNormalizedWeights]);
 
+  const chartData = useMemo(() => {
+    const dataByCategory = activities.reduce((acc, activity) => {
+      if (!acc[activity.category]) {
+        acc[activity.category] = {
+          totalWeightedAchievement: 0,
+          totalWeight: 0,
+          count: 0,
+        };
+      }
+      acc[activity.category].totalWeightedAchievement += activity.achievement * activity.weight;
+      acc[activity.category].totalWeight += activity.weight;
+      acc[activity.category].count += 1;
+      return acc;
+    }, {});
+
+    const chartCategories = Object.keys(dataByCategory);
+    const chartValues = chartCategories.map(category => {
+        const { totalWeightedAchievement, totalWeight } = dataByCategory[category];
+        return totalWeight > 0 ? (totalWeightedAchievement / totalWeight) : 0;
+    });
+
+    return {
+        categories: chartCategories,
+        values: chartValues,
+    };
+  }, [activities]);
+
   const updateAchievement = (id, value) => {
     const num = Math.max(0, Math.min(100, Number(value) || 0));
     setActivities((prev) => prev.map((a) => (a.id === id ? { ...a, achievement: num } : a)));
+  };
+
+  const updateActivityText = (id, field, value) => {
+    setActivities((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, [field]: value } : a))
+    );
   };
 
   const getScheduleDot = (value) => {
@@ -430,7 +518,8 @@ export default function RenopTemplate() {
       ...monthsDisplay,
       "Capaian (%)",
       "Skor",
-      
+      "Catatan",
+      "Tindak Lanjut",
     ];
 
     const rows = filteredActivities.map((a, idx) => {
@@ -443,6 +532,8 @@ export default function RenopTemplate() {
         ...monthOrder.map((mi) => (a.schedule?.[mi] ? "✓" : "")),
         a.achievement,
         skor,
+        a.notes,
+        a.followUp,
       ];
     });
 
@@ -507,69 +598,78 @@ export default function RenopTemplate() {
             </div>
           </div>
         </div>
+        
+     {/* Filters */}
+<div className="bg-white rounded-xl shadow-md p-6 mb-6">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+    {/* Kategori Kegiatan */}
+    <div className="md:col-span-1">
+      <h3 className="font-semibold text-gray-700 mb-3">Kategori Kegiatan</h3>
+      <div className="flex flex-wrap gap-2">
+        {[...new Set(activities.map((a) => a.category))].map((cat) => (
+          <span
+            key={cat}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(cat)}`}
+          >
+            {cat}
+          </span>
+        ))}
+      </div>
+    </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Kategori Kegiatan (Adaptasi Workshop Kopertais 2024):</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {[...new Set(activities.map((a) => a.category))].map((cat) => (
-                  <div key={cat} className="flex items-start gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${getCategoryColor(cat)}`}>
-                      {cat}
-                    </span>
-                    <span className="text-xs text-gray-600 mt-1">
-                      {(
-                        {
-                          Perencanaan: "Penyusunan dokumen, SOP, dan regulasi strategis",
-                          Koordinasi: "Komunikasi antar unit dan stakeholder eksternal",
-                          "Pelaporan Utama": "Pelaporan wajib ke PDDikti, EMIS, dan SISTER",
-                          "Monitoring & Evaluasi": "Pengawasan dan penilaian pelaksanaan program",
-                          "Pengembangan SDM": "Pelatihan dan peningkatan kompetensi operator",
-                          "Pengembangan Sistem": "Integrasi dan perbaikan sistem informasi",
-                          Administrasi: "Pengelolaan dokumen dan pelaporan rutin",
-                          Pengembangan: "Program peningkatan sistem & kapasitas",
-                        }
-                      )[cat] || ""}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+    {/* Filter dan Search */}
+    <div className="md:col-span-2 flex flex-col gap-4">
+         {/* Checkbox Options */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 text-sm">
+        <label className="inline-flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={useNormalizedWeights}
+            onChange={(e) => setUseNormalizedWeights(e.target.checked)}
+            className="rounded"
+          />
+          Gunakan bobot ternormalisasi (Σ=100) pada ringkasan
+        </label>
+        <label className="inline-flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={scopeOnlyEMISPDDIKTI}
+            onChange={(e) => setScopeOnlyEMISPDDIKTI(e.target.checked)}
+            className="rounded"
+          />
+          Khusus Staf EMIS & PDDikti
+        </label>
+      </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-500" />
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="border rounded-lg px-3 py-2"
-                >
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari kegiatan/target/pelaksana..."
-                className="border rounded-lg px-3 py-2 w-full sm:w-72"
-              />
-              <label className="inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={useNormalizedWeights} onChange={(e) => setUseNormalizedWeights(e.target.checked)} />
-                Gunakan bobot ternormalisasi (Σ=100) pada ringkasan
-              </label>
-              <label className="inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={scopeOnlyEMISPDDIKTI} onChange={(e) => setScopeOnlyEMISPDDIKTI(e.target.checked)} />
-                Khusus Staf EMIS & PDDikti
-              </label>
-            </div>
-          </div>
+      {/* Search & Select */}
+      <div className="flex flex-col md:flex-row md:items-center gap-3">
+        <div className="flex items-center gap-2 w-full md:w-1/3">
+          <Filter className="w-4 h-4 text-gray-500" />
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="border rounded-lg px-3 py-2 w-full"
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari kegiatan/target/pelaksana..."
+          className="border rounded-lg px-3 py-2 flex-1"
+        />
+      </div>
+
+     
+    </div>
+  </div>
+</div>
+
 
         {/* Activities Table */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -586,7 +686,9 @@ export default function RenopTemplate() {
                   ))}
                   <th className="px-4 py-3 text-center">Capaian</th>
                   <th className="px-4 py-3 text-center">Skor</th>
-                                  </tr>
+                  <th className="px-4 py-3 text-left min-w-48">Deskripsi Capaian Target</th>
+                  <th className="px-4 py-3 text-left min-w-48">Mitigasi</th>
+                </tr>
               </thead>
               <tbody>
                 {filteredActivities.map((activity, index) => {
@@ -635,21 +737,65 @@ export default function RenopTemplate() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center font-semibold text-indigo-600">{score}</td>
-                                          </tr>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={activity.notes}
+                          onChange={(e) => updateActivityText(activity.id, 'notes', e.target.value)}
+                          className="w-full px-2 py-1 border rounded"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={activity.followUp}
+                          onChange={(e) => updateActivityText(activity.id, 'followUp', e.target.value)}
+                          className="w-full px-2 py-1 border rounded"
+                        />
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
               <tfoot className="bg-gray-100 font-semibold">
                 <tr>
-                  <td className="px-4 py-3 text-right" colSpan={4}>TOTAL</td>
-                  <td className="px-2 py-3 text-center" colSpan={12} />
+                  <td className="px-4 py-3 text-right" colSpan={16}>TOTAL</td>
                   <td className="px-4 py-3 text-center">{totals.weightedAvgAchievement.toFixed(1)}%</td>
                   <td className="px-4 py-3 text-center text-indigo-600">{totals.weightedScore.toFixed(1)}</td>
-                  
+                  <td colSpan={2}></td>
                 </tr>
               </tfoot>
             </table>
           </div>
+        </div>
+
+        {/* Chart Container */}
+        <div className="bg-white rounded-lg shadow p-6 mt-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Visualisasi Progress per Kategori</h3>
+            <Plot
+                data={[
+                    {
+                        x: chartData.categories,
+                        y: chartData.values,
+                        type: 'bar',
+                        marker: {
+                          color: 'rgb(79, 70, 229)'
+                        }
+                    },
+                ]}
+                layout={{
+                    autosize: true,
+                    yaxis: {
+                        title: 'Progress Tertimbang (%)',
+                        range: [0, 100]
+                    },
+                    xaxis: {
+                        title: 'Kategori',
+                    },
+                }}
+                useResizeHandler={true}
+                style={{ width: "100%", height: "400px" }}
+            />
         </div>
 
         {/* Legend */}
