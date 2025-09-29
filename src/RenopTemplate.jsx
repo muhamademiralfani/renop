@@ -14,8 +14,8 @@ const initialActivities = [
       pelaksana: "Kepala Bagian EMIS & Staf",
       indicator: "Dokumen Renop disahkan pimpinan maksimal 31 Januari 2025",
       category: "Perencanaan",
-      notes: "Draft awal sudah selesai",
-      followUp: "Review bersama pimpinan",
+      notes: "",
+      followUp: "",
     },
     {
       id: 14,
